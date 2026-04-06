@@ -1,0 +1,56 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    CI = 'true'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install dependencies (server)') {
+      steps {
+        dir('server') {
+          sh 'npm ci || npm install'
+        }
+      }
+    }
+
+    stage('TypeScript compile check') {
+      steps {
+        dir('server') {
+          sh 'npx tsc -p tsconfig.json --noEmit'
+        }
+      }
+    }
+
+    stage('Package sanity') {
+      steps {
+        dir('server') {
+          sh 'node -e "const p=require(\'./package.json\'); if(!p.scripts || !p.scripts.dev){process.exit(1)}; console.log(\'package.json looks good\')"'
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo 'Server CI passed ✅'
+    }
+    failure {
+      echo 'Server CI failed ❌'
+    }
+    always {
+      deleteDir()
+    }
+  }
+}

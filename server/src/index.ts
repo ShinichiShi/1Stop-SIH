@@ -1,4 +1,9 @@
-require("dotenv").config({ path: "./.env" });
+import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+dotenv.config({ path: path.resolve(process.cwd(), "../.env"), override: false });
 import express, { Request, Response } from "express";
 import { startServer, app } from "./util";
 import cors from "cors";
@@ -22,6 +27,9 @@ import { rateLimiter } from "./middleware/rateLimiter";
 
 // Multer Setup 
 const tmpDir = "uploads";
+if (!fs.existsSync(tmpDir)) {
+  fs.mkdirSync(tmpDir, { recursive: true });
+}
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, tmpDir);
