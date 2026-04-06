@@ -1,0 +1,48 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    CI = 'true'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install dependencies (admin)') {
+      steps {
+        dir('admin') {
+          sh 'npm ci || npm install'
+        }
+      }
+    }
+
+    stage('Build admin') {
+      steps {
+        dir('admin') {
+          sh 'npm run build'
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo 'Admin CI passed ✅'
+    }
+    failure {
+      echo 'Admin CI failed ❌'
+    }
+    always {
+      deleteDir()
+    }
+  }
+}
