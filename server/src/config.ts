@@ -11,6 +11,8 @@ export const GCP_API_KEY: string = process.env.GCP_API_KEY ?? "";
 // redis config
 export const REDIS_HOST: string = process.env.REDIS_HOST ?? "localhost";
 export const REDIS_PORT: number = Number(process.env.REDIS_PORT ?? 6379);
+export const REDIS_USERNAME: string | undefined = process.env.REDIS_USERNAME;
+export const REDIS_PASSWORD: string | undefined = process.env.REDIS_PASSWORD;
 
 // rate limiter config
 export const RATE_LIMIT: number = Number(process.env.RATE_LIMIT ?? 10);

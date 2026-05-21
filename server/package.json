@@ -5,9 +5,9 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "echo \"skip build\"",
-    "start": "ts-node src/index.ts",
-    "dev": "ts-node src/index.ts"
+    "build": "tsc --noEmit false",
+    "start": "node dist/index.js",
+    "dev": "node src/index.ts"
   },
   "keywords": [],
   "author": "",
