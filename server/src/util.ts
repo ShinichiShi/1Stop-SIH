@@ -50,29 +50,31 @@ const delay = (ms:number) => new Promise((res) => setTimeout(res, ms));
 export async function startServer(){
   console.log("MONGODB_URL" , MONGODB_URL);
   console.log("REDIS_HOST", REDIS_HOST);
+  app.listen(SERVER_PORT, "0.0.0.0", async () => {
+    const ip: string | null = await getServerIP();
+    console.log(`Server started at http://${ip}:${SERVER_PORT}`);
+  });
+
   let retries = 0;
 
   while (retries < MAX_START_RETRIES) {
     try {
       await mongoose.connect(MONGODB_URL);
-      console.log('Database connected successfully');
+      console.log("Database connected successfully");
 
       // await redisClient.connect()
       console.log("Redis connected successfully");
 
-      app.listen(SERVER_PORT, '0.0.0.0', async () => {
-        const ip: string | null = await getServerIP();
-        console.log(`Server started at http://${ip}:${SERVER_PORT}`);
-      });
-
       break;
     } catch (err) {
       retries++;
-      console.error(`Failed to connect to DB (attempt ${retries}/${MAX_START_RETRIES})`);
+      console.error(
+        `Failed to connect to DB (attempt ${retries}/${MAX_START_RETRIES})`
+      );
       console.error(err);
 
       if (retries === MAX_START_RETRIES) {
-        console.error('Max retries reached. Exiting.');
+        console.error("Max retries reached. Exiting.");
         process.exit(1);
       }
 

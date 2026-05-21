@@ -1,5 +1,7 @@
 // server config
-export const SERVER_PORT: number = Number(process.env.SERVER_PORT ?? 3000);
+export const SERVER_PORT: number = Number(
+	process.env.PORT ?? process.env.SERVER_PORT ?? 3000
+);
 export const MAX_START_RETRIES: number = Number(process.env.MAX_START_RETRIES ?? 10);
 export const START_RETRY_DELAY_MS: number = Number(process.env.START_RETRY_DELAY_MS ?? 3000); // in milliseconds
 
