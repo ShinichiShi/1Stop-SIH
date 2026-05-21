@@ -81,7 +81,12 @@ async function connectDB() {
 export async function startServer(){
   console.log("MONGODB_URL" , MONGODB_URL);
   console.log("REDIS_HOST", REDIS_HOST);
-
+  try {
+    await redisClient.connect();
+    console.log("Redis connected successfully");
+  } catch (err) {
+    console.error("Failed to connect Redis:", err);
+  }
   app.listen(SERVER_PORT, "0.0.0.0", async () => {
     const ip: string | null = await getServerIP();
     console.log(`Server started at http://${ip}:${SERVER_PORT}`);
