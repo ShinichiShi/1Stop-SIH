@@ -41,8 +41,8 @@ export const redisClient:RedisClientType = createClient({
     host : REDIS_HOST,
     port : REDIS_PORT
   },
-  username: REDIS_USERNAME,
-  password: REDIS_PASSWORD,
+  ...(REDIS_USERNAME !== undefined && { username: REDIS_USERNAME }),
+  ...(REDIS_PASSWORD !== undefined && { password: REDIS_PASSWORD }),
 });
 
 redisClient.on("error", (err) => {
