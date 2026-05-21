@@ -24,6 +24,7 @@ import {
 
 import { addNewRoute, addNewStop } from "./controller/routeController";
 import { rateLimiter } from "./middleware/rateLimiter";
+import { openApiSpec } from "./docs/openapi";
 
 // Multer Setup 
 const tmpDir = "uploads";
@@ -54,6 +55,50 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(rateLimiter);
 
 // Routes
+app.get("/", (req: Request, res: Response) => res.redirect("/docs"));
+
+app.get("/openapi.json", (req: Request, res: Response) => {
+  res.json(openApiSpec);
+});
+
+app.get("/docs", (req: Request, res: Response) => {
+  res.type("html").send(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>1Stop API Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      #swagger-ui {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.onload = () => {
+        window.ui = SwaggerUIBundle({
+          url: '/openapi.json',
+          dom_id: '#swagger-ui',
+          deepLinking: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          layout: 'StandaloneLayout'
+        });
+      };
+    </script>
+  </body>
+</html>`);
+});
+
 app.get("/test", (req: Request, res: Response) => res.json("server running"));
 
 app.post("/getNearestBustops", getNearestBusStops);

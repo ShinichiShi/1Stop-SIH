@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useCallback } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import React, { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 interface GoogleMapProps {
   onLocationSelect: (lat: number, lng: number) => void;
   selectedLocation: { lat: number; lng: number } | null;
-  onMapReady: (map: google.maps.Map) => void;
+  onMapReady: () => void;
 }
 
 const GoogleMap: React.FC<GoogleMapProps> = ({
@@ -13,118 +14,75 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   onMapReady,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
-  const initializeMap = useCallback(async () => {
-    if (!mapRef.current) {
-      console.log("Map ref not ready yet");
-      return;
-    }
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
 
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      console.error(
-        "Google Maps API key not found. Please add VITE_GOOGLE_MAPS_API_KEY to your environment variables."
-      );
-      return;
-    }
+    // Fix default marker assets for bundlers
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    });
 
-    try {
-      const loader = new Loader({
-        apiKey,
-        version: "weekly",
-        libraries: ["places"],
-      });
+    const defaultCenter: L.LatLngExpression = [28.6139, 77.209];
+    const map = L.map(mapRef.current, {
+      center: defaultCenter,
+      zoom: 13,
+      zoomControl: true,
+    });
 
-      await loader.load();
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
 
-      // Double check that the ref is still available after async load
-      if (!mapRef.current) {
-        console.error("Map ref became null during Google Maps loading");
-        return;
-      }
+    map.on("click", (event: L.LeafletMouseEvent) => {
+      onLocationSelect(event.latlng.lat, event.latlng.lng);
+    });
 
-      // Default center (you can change this to your preferred location)
-      const defaultCenter = { lat: 28.6139, lng: 77.209 }; // New Delhi
+    mapInstanceRef.current = map;
+    onMapReady();
 
-      const map = new google.maps.Map(mapRef.current, {
-        center: defaultCenter,
-        zoom: 13,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-      });
-
-      mapInstanceRef.current = map;
-      onMapReady(map);
-
-      // Add click listener to map
-      map.addListener("click", (event: google.maps.MapMouseEvent) => {
-        if (event.latLng) {
-          const lat = event.latLng.lat();
-          const lng = event.latLng.lng();
-          onLocationSelect(lat, lng);
-        }
-      });
-    } catch (error) {
-      console.error("Error loading Google Maps:", error);
-    }
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
   }, [onLocationSelect, onMapReady]);
 
-  const updateMarker = useCallback(() => {
-    if (!mapInstanceRef.current || !selectedLocation) return;
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
 
-    // Remove existing marker
-    if (markerRef.current) {
-      markerRef.current.setMap(null);
-    }
-
-    // Create new marker
-    const marker = new google.maps.Marker({
-      position: selectedLocation,
-      map: mapInstanceRef.current,
-      title: "Selected Bus Stop Location",
-      draggable: true,
-    });
-
-    // Add drag listener to marker
-    marker.addListener("dragend", () => {
-      const position = marker.getPosition();
-      if (position) {
-        onLocationSelect(position.lat(), position.lng());
+    if (!selectedLocation) {
+      if (markerRef.current) {
+        markerRef.current.remove();
+        markerRef.current = null;
       }
-    });
-
-    markerRef.current = marker;
-
-    // Center map on marker
-    mapInstanceRef.current.setCenter(selectedLocation);
-  }, [selectedLocation, onLocationSelect]);
-
-  const clearMarker = useCallback(() => {
-    if (markerRef.current) {
-      markerRef.current.setMap(null);
-      markerRef.current = null;
+      return;
     }
-  }, []);
 
-  useEffect(() => {
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      initializeMap();
-    }, 100);
+    if (!markerRef.current) {
+      markerRef.current = L.marker([selectedLocation.lat, selectedLocation.lng], {
+        draggable: true,
+        title: "Selected Bus Stop Location",
+      }).addTo(map);
 
-    return () => clearTimeout(timer);
-  }, [initializeMap]);
-
-  useEffect(() => {
-    if (selectedLocation) {
-      updateMarker();
+      markerRef.current.on("dragend", (event: L.DragEndEvent) => {
+        const draggedMarker = event.target as L.Marker;
+        const position = draggedMarker.getLatLng();
+        onLocationSelect(position.lat, position.lng);
+      });
     } else {
-      clearMarker();
+      markerRef.current.setLatLng([selectedLocation.lat, selectedLocation.lng]);
     }
-  }, [selectedLocation, updateMarker, clearMarker]);
+
+    map.setView([selectedLocation.lat, selectedLocation.lng], map.getZoom(), {
+      animate: true,
+    });
+  }, [selectedLocation, onLocationSelect]);
 
   return (
     <div

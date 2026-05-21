@@ -40,16 +40,14 @@ const BusStopAdmin: React.FC<BusStopAdminProps> = ({ theme }) => {
   }, []);
 
   const handlePlaceSelect = useCallback(
-    (place: google.maps.places.PlaceResult) => {
-      if (place.geometry?.location) {
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-        setSelectedLocation({ lat, lng });
+    (place: { name: string; lat: number; lng: number }) => {
+      const { lat, lng, name } = place;
+      setSelectedLocation({ lat, lng });
 
-        // Set stop name from place name if not already set
-        if (!stopName && place.name) {
-          setStopName(place.name);
-        }
+      // Set stop name from place name if not already set
+      if (!stopName && name) {
+        const shortName = name.split(",")[0]?.trim();
+        setStopName(shortName || name);
       }
     },
     [stopName]
@@ -463,7 +461,7 @@ const BusStopAdmin: React.FC<BusStopAdminProps> = ({ theme }) => {
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center z-10 backdrop-blur-sm">
                       <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Loading Google Maps</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Loading map</h3>
                         <p className="text-gray-600">Please wait while we initialize the map...</p>
                       </div>
                     </div>

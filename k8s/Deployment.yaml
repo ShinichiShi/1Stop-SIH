@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: root
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      containers:
+        - name: server
+          image: 1stop-server:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: SERVER_PORT
+              value: "3000"
+            - name: MAX_START_RETRIES
+              value: "10"
+            - name: START_RETRY_DELAY_MS
+              value: "3000"
+            - name: REDIS_HOST
+              value: redis-service
+            - name: REDIS_PORT
+              value: "6379"
+            - name: RATE_LIMIT
+              value: "50"
+            - name: RATE_LIMIT_WINDOW_IN_SECONDS
+              value: "10"
+            - name: MONGODB_URL
+              value: mongodb://root:root@mongo-service:27017/1Stop?authSource=admin
+            - name: GCP_API_KEY
+              value: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin
+  template:
+    metadata:
+      labels:
+        app: admin
+    spec:
+      containers:
+        - name: admin
+          image: 1stop-admin:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 1stop-sih
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 1stop-sih
+  template:
+    metadata:
+      labels:
+        app: 1stop-sih
+    spec:
+      containers:
+        - name: 1stop-sih
+          image: 1stop-admin:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80

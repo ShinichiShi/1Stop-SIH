@@ -57,7 +57,7 @@ export async function startServer(){
       await mongoose.connect(MONGODB_URL);
       console.log('Database connected successfully');
 
-      await redisClient.connect()
+      // await redisClient.connect()
       console.log("Redis connected successfully");
 
       app.listen(SERVER_PORT, '0.0.0.0', async () => {

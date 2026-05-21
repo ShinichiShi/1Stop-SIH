@@ -1,11 +1,11 @@
 # Bus Stop Admin Panel
 
-A React + TypeScript + Vite application for managing bus stops with Google Maps integration.
+A React + TypeScript + Vite application for managing bus stops with OpenStreetMap integration.
 
 ## Features
 
-- 🗺️ Interactive Google Maps with click-to-pin functionality
-- 🔍 Google Places Autocomplete for location search
+- 🗺️ Interactive OpenStreetMap with click-to-pin functionality
+- 🔍 OpenStreetMap (Nominatim) location search
 - 📍 Draggable markers for precise positioning
 - 💾 Save bus stops to backend API
 - 🧹 Reset functionality to clear form and markers
@@ -21,14 +21,9 @@ npm install
 
 ### 2. Configure Environment Variables
 
-1. Get a Google Maps API key from [Google Cloud Console](https://console.cloud.google.com/)
-2. Enable the following APIs:
-   - Maps JavaScript API
-   - Places API
-3. Create a `.env` file in the project root:
+Create a `.env` file in the project root:
 
 ```env
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 VITE_API_BASE_URL=https://ca4e6fac-738f-430c-b5bf-9fc1658ecc03.mock.pstmn.io
 ```
 
@@ -61,7 +56,7 @@ The application will be available at `http://localhost:5173`
 
 ## Usage
 
-1. **Search for a location**: Use the search input to find places using Google Places Autocomplete
+1. **Search for a location**: Use the search input to find places using OpenStreetMap Nominatim
 2. **Manual pin placement**: Click anywhere on the map to place a marker
 3. **Adjust location**: Drag the marker to fine-tune the position
 4. **Enter stop name**: Fill in the bus stop name in the text field
@@ -75,7 +70,7 @@ The application will be available at `http://localhost:5173`
 src/
 ├── components/
 │   ├── BusStopAdmin.tsx      # Main admin component
-│   ├── GoogleMap.tsx         # Google Maps integration
+│   ├── GoogleMap.tsx         # Leaflet + OpenStreetMap integration
 │   └── PlacesAutocomplete.tsx # Places search component
 ├── App.tsx                   # App entry point
 └── index.css                 # TailwindCSS styles
@@ -86,9 +81,9 @@ src/
 - **React 18** with TypeScript
 - **Vite** for fast development
 - **TailwindCSS** for styling
-- **Google Maps JavaScript API** for maps
-- **Google Places API** for location search
-- **@googlemaps/js-api-loader** for API loading
+- **Leaflet** for map rendering
+- **OpenStreetMap tiles** for map data
+- **Nominatim API** for location search
 
 ## API Schema
 
@@ -109,7 +104,6 @@ interface BusStop {
 
 | Variable                   | Description          | Required |
 | -------------------------- | -------------------- | -------- |
-| `VITE_GOOGLE_MAPS_API_KEY` | Google Maps API key  | Yes      |
 | `VITE_API_BASE_URL`        | Backend API base URL | Yes      |
 
 ## Browser Support
@@ -121,6 +115,6 @@ interface BusStop {
 
 ## Troubleshooting
 
-1. **Maps not loading**: Check your Google Maps API key and ensure the Maps JavaScript API is enabled
-2. **Autocomplete not working**: Ensure the Places API is enabled in your Google Cloud Console
-3. **Save failing**: Verify your internet connection and that the mock API endpoint is accessible
+1. **Maps not loading**: Check internet connectivity and ensure tile requests to OpenStreetMap are not blocked
+2. **Search not returning results**: Ensure access to Nominatim is available from your network
+3. **Save failing**: Verify your API base URL and backend availability

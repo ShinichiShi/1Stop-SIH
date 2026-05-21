@@ -90,11 +90,69 @@ To set up and run the Android application:
    
    This will clone the `1Stop-SIH` repository and get the correct version of `1Stop-app`.
 
+## Kubernetes (Minikube) Deployment
+
+### 1) Start Minikube
+
+```bash
+minikube start
+kubectl create namespace 1stop
+```
+
+### 2) Build images inside Minikube Docker daemon
+
+```bash
+eval $(minikube docker-env)
+docker build -t 1stop-server:local ./server
+docker build -t 1stop-admin:local ./admin
+```
+
+### 3) Apply manifests
+
+```bash
+kubectl apply -f k8s/Deployment.yaml -n 1stop
+kubectl apply -f k8s/Service.yaml -n 1stop
+```
+
+### 4) Verify deployment
+
+```bash
+kubectl get pods -n 1stop
+kubectl get services -n 1stop
+```
+
+### 5) Access applications
+
+Admin app:
+
+```bash
+minikube service admin-service -n 1stop --url
+```
+
+Backend + Swagger UI:
+
+```bash
+minikube service server-service -n 1stop --url
+```
+
+Open `<server-url>/docs` for API UI and `<server-url>/openapi.json` for raw spec.
+
 ## API Documentation
 
 ### Base URL
 ```
 http://localhost:3000
+```
+
+### Visual API Docs (Swagger UI)
+Open the following in your browser:
+```
+http://localhost:3000/docs
+```
+
+Raw OpenAPI JSON:
+```
+http://localhost:3000/openapi.json
 ```
 
 ### Endpoints
